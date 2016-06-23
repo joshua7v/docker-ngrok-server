@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 prepare_crt() {
+	cd /ngrok
 	openssl genrsa -out base.key 2048
 	openssl req -new -x509 -nodes -key base.key -days 10000 -subj "/CN=$NGROK_DOMAIN" -out base.pem
 	openssl genrsa -out server.key 2048
@@ -11,6 +13,7 @@ prepare_crt() {
 }
 
 build() {
+	cd /ngrok
 	GOOS=linux GOARCH=amd64 make release-server
 	GOOS=darwin GOARCH=amd64 make release-client
 }
@@ -18,4 +21,4 @@ build() {
 prepare_crt
 build
 
-/opt/ngrok/bin/ngrokd -tlsKey=device.key -tlsCrt=device.crt -domain=$NGROK_DOMAIN -httpAddr=":8081" -httpsAddr=":8082"
+/ngrok/bin/ngrokd -tlsKey=server.key -tlsCrt=server.crt -domain="$NGROK_DOMAIN" -httpAddr=":8081" -httpsAddr=":8082"
